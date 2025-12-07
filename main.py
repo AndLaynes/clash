@@ -12,7 +12,7 @@ from datetime import datetime
 # ==========================================
 CLAN_TAG = "%239PJRJRPC"  # #9PJRJRPC encoded
 API_BASE_URL = "https://api.clashroyale.com/v1"
-API_KEY = os.environ.get("CR_API_KEY")
+API_KEY = os.environ.get("CR_API_KEY") or "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImVkMWIxOTI2LTk1MGUtNDZjZC1iMTJjLWY3NWI5MDg3ZjNhYSIsImlhdCI6MTc2NTA4MjI4Miwic3ViIjoiZGV2ZWxvcGVyLzVkZTAwM2M4LTNiMWQtZjU0NS1lYjUwLWQ1NTQxM2FiMGNkOCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxOTEuMTc3LjE2MS4xMiJdLCJ0eXBlIjoiY2xpZW50In1dfQ.HrBD2WHyGukFMkY8lXH0aMIu2Im40al3H9ALQh9ywnYl4IyI0BIr9pyU30vq4jnh_F4KQdlecrAi846cVe9ZIw"
 DATA_DIR = "data"
 
 # ==========================================
