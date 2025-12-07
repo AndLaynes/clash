@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import shutil
+import time
 import requests
 from jinja2 import Environment, FileSystemLoader
 from datetime import datetime
@@ -29,15 +30,28 @@ def setup_environment():
         sys.exit(1)
     
     # Clean and recreate data directory to ensure fresh start
-    if os.path.exists(DATA_DIR):
-        try:
-            shutil.rmtree(DATA_DIR)
-            log(f"Cleaned existing data directory: {DATA_DIR}")
-        except Exception as e:
-            log(f"Failed to clean data directory: {e}", "WARNING")
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR, exist_ok=True)
     
-    os.makedirs(DATA_DIR, exist_ok=True)
     log(f"Environment ready. Data directory: {os.path.abspath(DATA_DIR)}")
+
+def load_json_if_fresh(filename, ttl_minutes=10):
+    """Loads JSON from file if it exists and is fresher than ttl_minutes."""
+    path = os.path.join(DATA_DIR, filename)
+    if not os.path.exists(path):
+        return None
+        
+    try:
+        mtime = os.path.getmtime(path)
+        if (time.time() - mtime) < (ttl_minutes * 60):
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                log(f"Loaded from cache: {filename}")
+                return data
+    except Exception as e:
+        log(f"Cache read error for {filename}: {e}", "WARNING")
+    
+    return None
 
 def save_json(data, filename):
     path = os.path.join(DATA_DIR, filename)
@@ -121,19 +135,25 @@ def main():
     
     # 2. Fetch Data
     log("Fetching Clan Info...")
-    clan = fetch_api(f"/clans/{CLAN_TAG}")
+    clan = load_json_if_fresh("clan_info.json")
     if not clan:
-        log("Failed to fetch Clan Info. Aborting.", "CRITICAL")
-        sys.exit(1)
-    save_json(clan, "clan_info.json")
+        clan = fetch_api(f"/clans/{CLAN_TAG}")
+        if not clan:
+            log("Failed to fetch Clan Info. Aborting.", "CRITICAL")
+            sys.exit(1)
+        save_json(clan, "clan_info.json")
     
     log("Fetching Current War...")
-    war = fetch_api(f"/clans/{CLAN_TAG}/currentriverrace")
-    if war: save_json(war, "current_war.json")
+    war = load_json_if_fresh("current_war.json")
+    if not war:
+        war = fetch_api(f"/clans/{CLAN_TAG}/currentriverrace")
+        if war: save_json(war, "current_war.json")
     
     log("Fetching War Log...")
-    war_log = fetch_api(f"/clans/{CLAN_TAG}/riverracelog?limit=10")
-    if war_log: save_json(war_log, "war_log.json")
+    war_log = load_json_if_fresh("war_log.json")
+    if not war_log:
+        war_log = fetch_api(f"/clans/{CLAN_TAG}/riverracelog?limit=10")
+        if war_log: save_json(war_log, "war_log.json")
     
     # 3. Process Data
     log("Processing Data...")
