@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import requests
 from jinja2 import Environment, FileSystemLoader
@@ -170,7 +171,7 @@ def main():
     
     if not clan_info:
         print("ERRO CRÍTICO: Não há dados do clã para gerar o dashboard.")
-        return
+        sys.exit(1)
 
     # Dados processados para o template
     context = {
