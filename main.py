@@ -4,15 +4,17 @@ import json
 import shutil
 import time
 import requests
+import urllib.parse
 from jinja2 import Environment, FileSystemLoader
 from datetime import datetime
 
 # ==========================================
 # CONFIGURATION
 # ==========================================
-CLAN_TAG = "%239PJRJRPC"  # #9PJRJRPC encoded
+CLAN_TAG = "#9PJRJRPC"  # Plain tag
 API_BASE_URL = "https://api.clashroyale.com/v1"
-API_KEY = os.environ.get("CR_API_KEY") or "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImVkMWIxOTI2LTk1MGUtNDZjZC1iMTJjLWY3NWI5MDg3ZjNhYSIsImlhdCI6MTc2NTA4MjI4Miwic3ViIjoiZGV2ZWxvcGVyLzVkZTAwM2M4LTNiMWQtZjU0NS1lYjUwLWQ1NTQxM2FiMGNkOCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxOTEuMTc3LjE2MS4xMiJdLCJ0eXBlIjoiY2xpZW50In1dfQ.HrBD2WHyGukFMkY8lXH0aMIu2Im40al3H9ALQh9ywnYl4IyI0BIr9pyU30vq4jnh_F4KQdlecrAi846cVe9ZIw"
+# Check multiple possible env vars and fallback
+API_KEY = os.environ.get("CR_API_KEY") or os.environ.get("CLASH_ROYALE_API_KEY") or "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImVkMWIxOTI2LTk1MGUtNDZjZC1iMTJjLWY3NWI5MDg3ZjNhYSIsImlhdCI6MTc2NTA4MjI4Miwic3ViIjoiZGV2ZWxvcGVyLzVkZTAwM2M4LTNiMWQtZjU0NS1lYjUwLWQ1NTQxM2FiMGNkOCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxOTEuMTc3LjE2MS4xMiJdLCJ0eXBlIjoiY2xpZW50In1dfQ.HrBD2WHyGukFMkY8lXH0aMIu2Im40al3H9ALQh9ywnYl4IyI0BIr9pyU30vq4jnh_F4KQdlecrAi846cVe9ZIw"
 DATA_DIR = "data"
 
 # ==========================================
@@ -135,9 +137,11 @@ def main():
     
     # 2. Fetch Data
     log("Fetching Clan Info...")
+    encoded_tag = urllib.parse.quote(CLAN_TAG)
+    
     clan = load_json_if_fresh("clan_info.json")
     if not clan:
-        clan = fetch_api(f"/clans/{CLAN_TAG}")
+        clan = fetch_api(f"/clans/{encoded_tag}")
         if not clan:
             log("Failed to fetch Clan Info. Aborting.", "CRITICAL")
             sys.exit(1)
@@ -146,13 +150,13 @@ def main():
     log("Fetching Current War...")
     war = load_json_if_fresh("current_war.json")
     if not war:
-        war = fetch_api(f"/clans/{CLAN_TAG}/currentriverrace")
+        war = fetch_api(f"/clans/{encoded_tag}/currentriverrace")
         if war: save_json(war, "current_war.json")
     
     log("Fetching War Log...")
     war_log = load_json_if_fresh("war_log.json")
     if not war_log:
-        war_log = fetch_api(f"/clans/{CLAN_TAG}/riverracelog?limit=10")
+        war_log = fetch_api(f"/clans/{encoded_tag}/riverracelog?limit=10")
         if war_log: save_json(war_log, "war_log.json")
     
     # 3. Process Data
