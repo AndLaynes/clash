@@ -1,0 +1,41 @@
+<!-- Header Unificado - Inclua em todos os templates -->
+<header class="main-header">
+    <div class="header-bg-pattern"></div>
+    <div class="logo-area">
+        <img src="https://cdn-icons-png.flaticon.com/512/1165/1165305.png" alt="Clash Royale Logo"
+            class="cr-logo pulse">
+        <div class="clan-info">
+            <h1 class="clan-name">{{ clan.name if clan else 'Nome do Clã' }}</h1>
+            <div class="clan-meta">
+                <span class="clan-tag">{{ clan.tag if clan else '#TAG' }}</span>
+                <span class="clan-trophies">🏆 {{ clan.clanWarTrophies if clan else '0' }}</span>
+            </div>
+        </div>
+    </div>
+    <nav class="main-nav">
+        <a href="./index.html" class="nav-link {% if page == 'home' %}active{% endif %}">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Visão Geral</span>
+        </a>
+        <a href="./audit.html" class="nav-link {% if page == 'audit' %}active{% endif %}">
+            <span class="nav-icon">📋</span>
+            <span class="nav-text">Auditoria</span>
+        </a>
+        <a href="./war_history.html" class="nav-link {% if page == 'war' %}active{% endif %}">
+            <span class="nav-icon">⚔️</span>
+            <span class="nav-text">Guerras</span>
+        </a>
+        <a href="./members_stats.html" class="nav-link {% if page == 'members' %}active{% endif %}">
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Membros</span>
+        </a>
+        <a href="./ranking.html" class="nav-link {% if page == 'ranking' %}active{% endif %}">
+            <span class="nav-icon">🏅</span>
+            <span class="nav-text">Ranking</span>
+        </a>
+    </nav>
+    <div class="update-info">
+        <span class="update-icon">🔄</span>
+        <span class="update-text">{{ generated_at if generated_at else 'Carregando...' }}</span>
+    </div>
+</header>

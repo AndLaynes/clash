@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estatísticas de Membros - {{ clan.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./static/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        {% set page = 'members' %}
+        {% include '_header.html' %}
+
+        <main class="dashboard-grid">
+            <section class="stats-cards">
+                <div class="card" title="Total de jogadores ativos no clã">
+                    <h3>👥 Membros Ativos</h3>
+                    <div class="value">{{ members|length }}/50</div>
+                </div>
+                <div class="card" title="Doações totais (últimos 7 dias)">
+                    <h3>🎁 Doações Semanais</h3>
+                    <div class="value">{{ total_donations }}</div>
+                </div>
+                <div class="card" title="Troféus médios por membro">
+                    <h3>🏆 Média de Troféus</h3>
+                    <div class="value">{{ avg_trophies }}</div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>📊 Desempenho Individual</h2>
+                    <span class="subtitle">Clique nas colunas para ordenar</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="membersTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)" class="sortable" title="Posição no ranking do clã"># ↕</th>
+                                <th onclick="sortTable(1)" class="sortable" title="Nome do jogador">Jogador ↕</th>
+                                <th onclick="sortTable(2)" class="sortable" title="Cargo no clã (Líder, Co-líder, etc)">
+                                    Cargo ↕</th>
+                                <th onclick="sortTable(3)" class="sortable" title="Troféus atuais na ladder">Troféus ↕
+                                </th>
+                                <th onclick="sortTable(4)" class="sortable" title="Doações de cartas (últimos 7 dias)">
+                                    Doações ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in members %}
+                            <tr>
+                                <td>{{ member.clanRank }}</td>
+                                <td>
+                                    <div class="member-name">
+                                        <strong>{{ member.name }}</strong>
+                                        <span class="member-tag">{{ member.tag }}</span>
+                                    </div>
+                                </td>
+                                <td><span class="role-badge {{ member.role }}">{{ member.role }}</span></td>
+                                <td>{{ member.trophies }} 🏆</td>
+                                <td>{{ member.donations }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Botão de Exportação DESTACADO -->
+            <section class="export-section">
+                <button onclick="exportToPDF()" class="btn-export">
+                    📄 EXPORTAR PARA PDF
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="static/table-sort.js"></script>
+    <script src="static/export-pdf.js"></script>
+</body>
+
+</html>

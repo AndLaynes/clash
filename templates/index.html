@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - {{ clan.name if clan else 'Clã' }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./static/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        {% set page = 'home' %}
+        {% include '_header.html' %}
+
+        <main class="dashboard-grid">
+            <section class="stats-cards">
+                <div class="card">
+                    <h3>🏆 Troféus de Guerra</h3>
+                    <div class="value">{{ clan.clanWarTrophies if clan else '---' }}</div>
+                </div>
+                <div class="card">
+                    <h3>👥 Membros Ativos</h3>
+                    <div class="value">{{ clan.members if clan else '0' }}/50</div>
+                </div>
+                <div class="card">
+                    <h3>🎁 Doações / Semana</h3>
+                    <div class="value">{{ clan.donationsPerWeek if clan else '0' }}</div>
+                </div>
+            </section>
+
+            {% if war %}
+            <section class="card">
+                <h2>⚔️ Guerra Atual</h2>
+                <div class="war-details" style="margin-top: 15px;">
+                    <p style="font-size: 1.1rem;">Estado: <strong style="color: var(--gold);">{{ war.state }}</strong>
+                    </p>
+                    <p style="color: var(--text-muted);">Seção: {{ war.sectionIndex }}</p>
+                </div>
+            </section>
+            {% endif %}
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>📋 Membros do Clã</h2>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Jogador</th>
+                                <th>Cargo</th>
+                                <th>Troféus</th>
+                                <th>Doações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if clan and clan.memberList %}
+                            {% for member in clan.memberList [:10] %}
+                            <tr>
+                                <td>{{ member.clanRank }}</td>
+                                <td>
+                                    <div class="member-name">
+                                        <strong>{{ member.name }}</strong>
+                                        <span class="member-tag">{{ member.tag }}</span>
+                                    </div>
+                                </td>
+                                <td><span class="role-badge {{ member.role }}">{{ member.role }}</span></td>
+                                <td>{{ member.trophies }} 🏆</td>
+                                <td>{{ member.donations }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center;">Nenhum membro encontrado.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="members_stats.html"
+                        style="color: var(--gold); text-decoration: none; font-weight: 700;">Ver Todos →</a>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking - {{ clan.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./static/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        {% set page = 'ranking' %}
+        {% include '_header.html' %}
+
+        <main class="dashboard-grid">
+            <!-- Podium dos Top 3 -->
+            <section class="podium-section">
+                <h2 class="section-title">🏆 Top 3 Jogadores</h2>
+                <div class="podium">
+                    {% if top_players|length >= 3 %}
+                    <!-- 2º Lugar -->
+                    <div class="podium-place second">
+                        <div class="podium-avatar">
+                            <div class="rank-badge silver">2</div>
+                            <div class="avatar-circle">{{ top_players[1].name[0] }}</div>
+                        </div>
+                        <div class="podium-stats">
+                            <h3>{{ top_players[1].name }}</h3>
+                            <p class="trophy-count">🏆 {{ top_players[1].trophies }}</p>
+                            <p class="donations">🎁 {{ top_players[1].donations }}</p>
+                        </div>
+                        <div class="podium-base silver-base">
+                            <span class="podium-number">2</span>
+                        </div>
+                    </div>
+                    <!-- 1º Lugar -->
+                    <div class="podium-place first">
+                        <div class="crown-icon">👑</div>
+                        <div class="podium-avatar">
+                            <div class="rank-badge gold">1</div>
+                            <div class="avatar-circle gold-glow">{{ top_players[0].name[0] }}</div>
+                        </div>
+                        <div class="podium-stats">
+                            <h3>{{ top_players[0].name }}</h3>
+                            <p class="trophy-count">🏆 {{ top_players[0].trophies }}</p>
+                            <p class="donations">🎁 {{ top_players[0].donations }}</p>
+                        </div>
+                        <div class="podium-base gold-base">
+                            <span class="podium-number">1</span>
+                        </div>
+                    </div>
+                    <!-- 3º Lugar -->
+                    <div class="podium-place third">
+                        <div class="podium-avatar">
+                            <div class="rank-badge bronze">3</div>
+                            <div class="avatar-circle">{{ top_players[2].name[0] }}</div>
+                        </div>
+                        <div class="podium-stats">
+                            <h3>{{ top_players[2].name }}</h3>
+                            <p class="trophy-count">🏆 {{ top_players[2].trophies }}</p>
+                            <p class="donations">🎁 {{ top_players[2].donations }}</p>
+                        </div>
+                        <div class="podium-base bronze-base">
+                            <span class="podium-number">3</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Top 10 Visual Podium -->
+            <section class="top10-podium-section">
+                <h2 class="section-title">🏅 Top 10 Jogadores</h2>
+                <p class="subtitle">Ranking por Troféus</p>
+
+                <div class="top10-grid">
+                    {% if all_players|length >= 10 %}
+                    {% for player in all_players[:10] %}
+                    <div class="top10-card rank-{{ loop.index }}">
+                        <div class="rank-badge-top10">{{ loop.index }}</div>
+                        <div class="player-avatar-top10">
+                            {{ player.name[0] }}
+                        </div>
+                        <div class="player-info-top10">
+                            <h4>{{ player.name }}</h4>
+                            <div class="player-trophies-top10">
+                                <span class="trophy-icon">🏆</span>
+                                <span class="trophy-value">{{ player.trophies }}</span>
+                            </div>
+                            <div class="player-donations-top10">
+                                <span class="donation-icon">🎁</span>
+                                <span class="donation-value">{{ player.donations }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Leaderboard Completo -->
+            <section class="card leaderboard-card">
+                <div class="card-header">
+                    <h2>🏅 Leaderboard Completo</h2>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterBy('trophies')">Troféus</button>
+                        <button class="filter-btn" onclick="filterBy('donations')">Doações</button>
+                        <button class="filter-btn" onclick="filterBy('war')">Guerra</button>
+                    </div>
+                </div>
+
+                <div class="leaderboard">
+                    {% for player in all_players %}
+                    <div class="leaderboard-item {% if loop.index <= 3 %}top-{{ loop.index }}{% endif %}"
+                        data-trophies="{{ player.trophies }}" data-donations="{{ player.donations }}"
+                        data-war="{{ player.war_score }}">
+                        <div class="rank-display">
+                            {% if loop.index == 1 %}
+                            <span class="rank-icon gold">🥇</span>
+                            {% elif loop.index == 2 %}
+                            <span class="rank-icon silver">🥈</span>
+                            {% elif loop.index == 3 %}
+                            <span class="rank-icon bronze">🥉</span>
+                            {% else %}
+                            <span class="rank-number">{{ loop.index }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="player-details">
+                            <div class="player-name">
+                                <strong>{{ player.name }}</strong>
+                                <span class="player-tag">{{ player.tag }}</span>
+                            </div>
+                            <span class="role-badge {{ player.role }}">{{ player.role }}</span>
+                        </div>
+                        <div class="player-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">🏆</span>
+                                <span class="stat-value">{{ player.trophies }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">🎁</span>
+                                <span class="stat-value">{{ player.donations }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">⚔️</span>
+                                <span class="stat-value">{{ player.war_score }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Botão Exportação -->
+            <section class="export-section">
+                <button onclick="exportToPDF()" class="btn-export">
+                    📄 Exportar Ranking PDF
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="static/ranking.js"></script>
+    <script src="static/export-pdf.js"></script>
+</body>
+
+</html>

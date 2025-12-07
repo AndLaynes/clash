@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoria Diária - JULES Squad (v2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./static/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+
+        {% include '_header.html' %}
+
+        <main class="dashboard-grid full-width">
+
+            <section class="card auditoria-summary">
+                <div class="audit-header">
+                    <div>
+                        <h2>Auditoria Diária</h2>
+                        <p style="color: var(--text-muted);">Analisando performance de: <strong>{{ audit_day }}</strong>
+                            (Dia {{ war_day }})</p>
+                        <div class="meta-tag">Meta do Dia: <strong>{{ target_decks }} Decks</strong></div>
+                    </div>
+
+                    <div class="audit-stats-group">
+                        <div class="stat-box success">
+                            <span class="stat-number">{{ stats.on_track }}</span>
+                            <span class="stat-label">EM DIA</span>
+                        </div>
+                        <div class="stat-box warning">
+                            <span class="stat-number">{{ stats.incomplete }}</span>
+                            <span class="stat-label">INCOMPLETO</span>
+                        </div>
+                        <div class="stat-box danger">
+                            <span class="stat-number">{{ stats.zero }}</span>
+                            <span class="stat-label">ZERADO</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="info-box">
+                    <h3>ℹ️ Como funciona a Auditoria?</h3>
+                    <hr>
+                    <p>O sistema verifica os decks usados de forma <strong>retrospectiva</strong> para garantir que
+                        todos jogaram no dia anterior ou no dia corrente.</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 10px;">
+                        <li><strong style="color: var(--gold);">Quinta-feira:</strong> Audita Quinta (Meta: 4 Decks)
+                        </li>
+                        <li><strong style="color: var(--gold);">Sexta-feira:</strong> Audita Sexta (Meta: 8 Decks)</li>
+                        <li><strong style="color: var(--gold);">Sábado:</strong> Audita Sábado (Meta: 12 Decks)</li>
+                        <li><strong style="color: var(--gold);">Domingo:</strong> Audita Domingo (Meta: 16 Decks)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>📋 Detalhamento por Jogador</h2>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Jogador</th>
+                                <th>Cargo</th>
+                                <th>Decks Usados</th>
+                                <th>Faltam</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in audit_results %}
+                            <tr class="row-{{ member.status_class }}">
+                                <td>
+                                    <div class="member-name">
+                                        <strong>{{ member.name }}</strong>
+                                        <span class="member-tag">{{ member.tag }}</span>
+                                    </div>
+                                </td>
+                                <td><span class="role-badge {{ member.role }}">{{ member.role }}</span></td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar" style="width: {{ (member.decks_used / 16) * 100 }}%;">
+                                        </div>
+                                        <span class="progress-text">{{ member.decks_used }} / {{ target_decks_total
+                                            }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if member.missing > 0 %}
+                                    <span style="color: var(--accent-red); font-weight: bold;">-{{ member.missing
+                                        }}</span>
+                                    {% else %}
+                                    <span style="color: var(--accent-green);">OK</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="status-badge {{ member.status_class }}">{{ member.status_label
+                                        }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>
