@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Guerra - OS GUARDIÕES</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./static/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        
+        <!-- Header Unificado - Inclua em todos os templates -->
+<header class="main-header">
+    <div class="header-bg-pattern"></div>
+    <div class="logo-area">
+        <img src="https://cdn-icons-png.flaticon.com/512/1165/1165305.png" alt="Clash Royale Logo"
+            class="cr-logo pulse">
+        <div class="clan-info">
+            <h1 class="clan-name">OS GUARDIÕES</h1>
+            <div class="clan-meta">
+                <span class="clan-tag">#9PJRJRPC</span>
+                <span class="clan-trophies">🏆 3167</span>
+            </div>
+        </div>
+    </div>
+    <nav class="main-nav">
+        <a href="./index.html" class="nav-link ">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Visão Geral</span>
+        </a>
+        <a href="./audit.html" class="nav-link ">
+            <span class="nav-icon">📋</span>
+            <span class="nav-text">Auditoria</span>
+        </a>
+        <a href="./war_history.html" class="nav-link active">
+            <span class="nav-icon">⚔️</span>
+            <span class="nav-text">Guerras</span>
+        </a>
+        <a href="./members_stats.html" class="nav-link ">
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Membros</span>
+        </a>
+        <a href="./ranking.html" class="nav-link ">
+            <span class="nav-icon">🏅</span>
+            <span class="nav-text">Ranking</span>
+        </a>
+    </nav>
+    <div class="update-info">
+        <span class="update-icon">🔄</span>
+        <span class="update-text">07/12/2025 18:02</span>
+    </div>
+</header>
+
+        <main class="dashboard-grid">
+            <!-- Card de Liga -->
+            <section class="league-section">
+                <div class="card league-card">
+                    <div class="league-icon">🏆</div>
+                    <div class="league-info">
+                        <h3>Bronze I</h3>
+                        <p class="league-subtitle">Liga Atual</p>
+                        <p class="league-next-info">
+                            
+                            📈 Próxima liga: <strong>Bronze II</strong> (600 troféus)
+                            
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Histórico de Guerras -->
+            <section class="card">
+                <div class="card-header">
+                    <h2>⚔️ Última Guerra</h2>
+                    <span class="war-date">Temporada -- - Seção --</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="warTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)" class="sortable" title="Posição no ranking"># ↕</th>
+                                <th onclick="sortTable(1)" class="sortable" title="Status baseado nos decks usados">
+                                    Status ↕</th>
+                                <th onclick="sortTable(2)" class="sortable" title="Nome do jogador">Jogador ↕</th>
+                                <th onclick="sortTable(3)" class="sortable"
+                                    title="Número de decks usados na guerra (máx 16)">Decks Usados ↕</th>
+                                <th onclick="sortTable(4)" class="sortable" title="Pontos de fama conquistados">Fama ↕
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="static/table-sort.js"></script>
+</body>
+
+</html>
