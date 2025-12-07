@@ -182,15 +182,15 @@ def main():
             audit_results.append({
                 "name": member["name"],
                 "role": member["role"],
-                "decks": decks,
+                "decks_used": decks,
                 "missing": missing,
                 "status": status
             })
             
     # Sort audit: Danger -> Warning -> Success
-    audit_results.sort(key=lambda x: (0 if x["status"] == "danger" else 1 if x["status"] == "warning" else 2, -x["decks"]))
+    audit_results.sort(key=lambda x: (0 if x["status"] == "danger" else 1 if x["status"] == "warning" else 2, -x["decks_used"]))
     context["audit_results"] = audit_results
-    context["audit_stats"] = stats
+    context["stats"] = stats
 
     # 4. Render Templates
     log("Rendering Templates...")
