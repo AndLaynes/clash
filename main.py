@@ -1,97 +1,47 @@
 import os
 import sys
 import json
-import shutil
 import time
-import requests
-import urllib.parse
-from jinja2 import Environment, FileSystemLoader
 from datetime import datetime
+from typing import Dict, List, Any, Optional, Tuple, Union
 
-# ==========================================
-# CONFIGURATION
-# ==========================================
-CLAN_TAG = "#9PJRJRPC"  # Plain tag
-API_BASE_URL = "https://api.clashroyale.com/v1"
-# Check multiple possible env vars and fallback
-API_KEY = os.environ.get("CR_API_KEY") or os.environ.get("CLASH_ROYALE_API_KEY") or "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImVkMWIxOTI2LTk1MGUtNDZjZC1iMTJjLWY3NWI5MDg3ZjNhYSIsImlhdCI6MTc2NTA4MjI4Miwic3ViIjoiZGV2ZWxvcGVyLzVkZTAwM2M4LTNiMWQtZjU0NS1lYjUwLWQ1NTQxM2FiMGNkOCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxOTEuMTc3LjE2MS4xMiJdLCJ0eXBlIjoiY2xpZW50In1dfQ.HrBD2WHyGukFMkY8lXH0aMIu2Im40al3H9ALQh9ywnYl4IyI0BIr9pyU30vq4jnh_F4KQdlecrAi846cVe9ZIw"
-DATA_DIR = "data"
+from jinja2 import Environment, FileSystemLoader
+
+# Local Configuration
+try:
+    import config
+except ImportError:
+    print("CRITICAL ERROR: config.py not found.")
+    sys.exit(1)
 
 # ==========================================
 # HELPERS
 # ==========================================
-def log(msg, level="INFO"):
+def log(msg: str, level: str = "INFO") -> None:
+    """Logs a message with timestamp and level."""
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"[{timestamp}] [{level}] {msg}")
 
-def setup_environment():
-    """Checks credentials and prepares the workspace."""
-    if not API_KEY:
-        log("CR_API_KEY environment variable not set!", "CRITICAL")
-        log("Cannot access Clash Royale API without a key.", "CRITICAL")
-        sys.exit(1)
-    
-    # Clean and recreate data directory to ensure fresh start
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR, exist_ok=True)
-    
-    log(f"Environment ready. Data directory: {os.path.abspath(DATA_DIR)}")
-
-def load_json_if_fresh(filename, ttl_minutes=10):
-    """Loads JSON from file if it exists and is fresher than ttl_minutes."""
-    path = os.path.join(DATA_DIR, filename)
+def load_json(filename: str) -> Optional[Dict[str, Any]]:
+    """Loads JSON from file if it exists."""
+    path = os.path.join(config.DATA_DIR, filename)
     if not os.path.exists(path):
         return None
         
     try:
-        mtime = os.path.getmtime(path)
-        if (time.time() - mtime) < (ttl_minutes * 60):
-            with open(path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                log(f"Loaded from cache: {filename}")
-                return data
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            log(f"Loaded data: {filename}")
+            return data
     except Exception as e:
-        log(f"Cache read error for {filename}: {e}", "WARNING")
-    
-    return None
-
-def save_json(data, filename):
-    path = os.path.join(DATA_DIR, filename)
-    try:
-        with open(path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        log(f"Saved: {filename}")
-    except Exception as e:
-        log(f"Failed to save {filename}: {e}", "ERROR")
-
-def fetch_api(endpoint):
-    """Generic API fetcher with error handling."""
-    url = f"{API_BASE_URL}{endpoint}"
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Accept": "application/json"
-    }
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 404:
-            log(f"Resource not found: {endpoint}", "ERROR")
-        elif e.response.status_code == 403:
-            log(f"Access denied (Check API Key/IP): {endpoint}", "ERROR")
-        else:
-            log(f"HTTP Error {e.response.status_code}: {endpoint}", "ERROR")
-    except Exception as e:
-        log(f"Network/Unexpected Error: {e}", "ERROR")
+        log(f"Error loading {filename}: {e}", "ERROR")
     
     return None
 
 # ==========================================
 # CORE LOGIC
 # ==========================================
-def get_war_day_context():
+def get_war_day_context() -> Dict[str, Any]:
     """Calculates the current war day (Thursday=1 .. Sunday=4)."""
     # 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
     weekday = datetime.now().weekday()
@@ -118,122 +68,164 @@ def get_war_day_context():
     return {
         "day_name": day_names[weekday],
         "war_day": war_day,
-        "target_decks": target_decks
+        "target_decks": target_decks,
+        "target_decks_total": 16 # Total for the week
     }
 
-def calculate_league(trophies):
-    """Determines league based on clan war trophies."""
-    # Simplified thresholds
+def calculate_league(trophies: int) -> Tuple[str, str]:
+    """Determines league name and theme color based on trophies."""
     if trophies >= 3000: return "Legendary", "Purple"
     if trophies >= 1500: return "Gold", "Gold"
     if trophies >= 600: return "Silver", "Silver"
     return "Bronze", "Bronze"
 
-def main():
-    log("=== STARTING DASHBOARD GENERATION ===")
-    
-    # 1. Setup
-    setup_environment()
-    
-    # 2. Fetch Data
-    log("Fetching Clan Info...")
-    encoded_tag = urllib.parse.quote(CLAN_TAG)
-    
-    clan = load_json_if_fresh("clan_info.json")
-    if not clan:
-        clan = fetch_api(f"/clans/{encoded_tag}")
-        if not clan:
-            log("Failed to fetch Clan Info. Aborting.", "CRITICAL")
-            sys.exit(1)
-        save_json(clan, "clan_info.json")
-    
-    log("Fetching Current War...")
-    war = load_json_if_fresh("current_war.json")
-    if not war:
-        war = fetch_api(f"/clans/{encoded_tag}/currentriverrace")
-        if war: save_json(war, "current_war.json")
-    
-    log("Fetching War Log...")
-    war_log = load_json_if_fresh("war_log.json")
-    if not war_log:
-        war_log = fetch_api(f"/clans/{encoded_tag}/riverracelog?limit=10")
-        if war_log: save_json(war_log, "war_log.json")
-    
-    # 3. Process Data
-    log("Processing Data...")
-    
-    # Context Builder
-    timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
-    league_name, league_color = calculate_league(clan.get("clanWarTrophies", 0))
-    
-    context = {
-        "generated_at": timestamp,
-        "clan": clan,
-        "war": war,
-        "war_log": war_log,
-        "league": league_name,
-        "league_color": league_color
-    }
-    
-    # Add Audit Context
-    audit_info = get_war_day_context()
-    context.update(audit_info)
-    
-    # Process Audit Logic (Active Members vs War Usage)
+def process_audit(clan_members: List[Dict], war_data: Optional[Dict], audit_info: Dict) -> Tuple[List[Dict], Dict[str, int]]:
+    """Processes audit logic: compares actual usage vs targets."""
     audit_results = []
-    stats = {"on_track": 0, "warning": 0, "danger": 0}
-    
-    if war and "clan" in war and "participants" in war["clan"]:
-        participants = {p["tag"]: p for p in war["clan"]["participants"]}
+    stats = {"on_track": 0, "warning": 0, "danger": 0, "incomplete": 0, "zero": 0}
+    target = audit_info["target_decks"]
+
+    if war_data and "clan" in war_data and "participants" in war_data["clan"]:
+        participants = {p["tag"]: p for p in war_data["clan"]["participants"]}
         
-        for member in clan.get("memberList", []):
+        for member in clan_members:
             tag = member["tag"]
             p_data = participants.get(tag, {})
-            decks = p_data.get("decksUsed", 0)
+            decks_used = p_data.get("decksUsed", 0)
             
-            # Status Logic
-            missing = max(0, audit_info["target_decks"] - decks)
-            status = "success"
-            if decks == 0: 
-                status = "danger"
+            missing = max(0, target - decks_used)
+            
+            # Determine Status
+            status_class = "success"
+            status_label = "OK"
+            
+            if decks_used == 0:
+                status_class = "danger"
+                status_label = "ZERADO"
                 stats["danger"] += 1
-            elif missing > 0: 
-                status = "warning"
+                stats["zero"] += 1
+            elif missing > 0:
+                status_class = "warning"
+                status_label = "ATRASADO"
                 stats["warning"] += 1
+                stats["incomplete"] += 1
             else:
                 stats["on_track"] += 1
                 
             audit_results.append({
                 "name": member["name"],
-                "role": member["role"],
-                "decks_used": decks,
+                "tag": member["tag"],
+                "role": member.get("role", "member"),
+                "decks_used": decks_used,
                 "missing": missing,
-                "status": status
+                "status_class": status_class,
+                "status_label": status_label
             })
-            
-    # Sort audit: Danger -> Warning -> Success
-    audit_results.sort(key=lambda x: (0 if x["status"] == "danger" else 1 if x["status"] == "warning" else 2, -x["decks_used"]))
-    context["audit_results"] = audit_results
-    context["stats"] = stats
+    
+    # Sort: Danger (Zeros) -> Warning (Incomplete) -> Success (OK)
+    # Secondary sort: Decks used (ascending)
+    audit_results.sort(key=lambda x: (
+        0 if x["status_class"] == "danger" else 1 if x["status_class"] == "warning" else 2, 
+        x["decks_used"]
+    ))
+    
+    return audit_results, stats
 
-    # 4. Render Templates
-    log("Rendering Templates...")
-    env = Environment(loader=FileSystemLoader("templates"))
+def main():
+    log("=== STARTING DASHBOARD GENERATION (v4.0 - Offline Mode) ===")
     
-    templates = ["index.html", "audit.html", "war_history.html", "members_stats.html", "ranking.html"]
+    # 1. Load Data (Must be explicitly fetched first)
+    log("Loading local data files...")
     
-    for tmpl_name in templates:
+    clan = load_json("clan_info.json")
+    if not clan:
+        log("CRITICAL: 'clan_info.json' missing. Run 'python fetch_data.py' first!", "CRITICAL")
+        sys.exit(1)
+        
+    war = load_json("current_war.json")
+    war_log = load_json("war_log.json")
+    
+    if not war: log("WARNING: 'current_war.json' missing. Data will be incomplete.", "WARNING")
+    if not war_log: log("WARNING: 'war_log.json' missing. History will be empty.", "WARNING")
+    
+    # 2. Process Data
+    log("Processing Data & Logic...")
+    
+    # Standard Date Format
+    now = datetime.now()
+    generated_at_str = now.strftime("%d/%m/%Y às %H:%M")
+    audit_day_str = now.strftime("%d/%m")
+    
+    # League Calculation
+    clan_trophies = clan.get("clanWarTrophies", 0)
+    league_name, league_color = calculate_league(clan_trophies)
+    
+    # Audit Context
+    audit_info = get_war_day_context()
+    audit_results, audit_stats = process_audit(clan.get("memberList", []), war, audit_info)
+
+    # Ranking Calculation
+    all_players = []
+    
+    for m in clan.get("memberList", []):
+        player = {
+            "name": m.get("name"),
+            "tag": m.get("tag"),
+            "role": m.get("role"),
+            "trophies": m.get("trophies", 0),
+            "donations": m.get("donations", 0),
+            "war_score": 0 
+        }
+        all_players.append(player)
+        
+    all_players.sort(key=lambda x: x["trophies"], reverse=True)
+    top_players = all_players[:3] if len(all_players) >= 3 else all_players
+
+    # Prepare Context
+    context = {
+        "generated_at": generated_at_str,
+        "audit_day": audit_day_str,
+        "clan": clan,
+        "war": war,
+        "war_log": war_log,
+        "members": clan.get("memberList", []),
+        "league_name": league_name,
+        "league_color": league_color,
+        "war_day": audit_info["war_day"],
+        "day_name": audit_info["day_name"],
+        "target_decks": audit_info["target_decks"],
+        "target_decks_total": audit_info["target_decks_total"],
+        "audit_results": audit_results,
+        "stats": audit_stats,
+        "all_players": all_players,
+        "top_players": top_players,
+        "max": max,
+        "min": min
+    }
+
+    # 3. Render Templates
+    log("Rendering View Layer...")
+    env = Environment(loader=FileSystemLoader(config.TEMPLATES_DIR))
+    
+    templates_to_render = [
+        "index.html", 
+        "audit.html", 
+        "war_history.html", 
+        "members_stats.html", 
+        "ranking.html"
+    ]
+    
+    for tmpl_name in templates_to_render:
         try:
             template = env.get_template(tmpl_name)
             output = template.render(context)
             with open(tmpl_name, "w", encoding="utf-8") as f:
                 f.write(output)
-            log(f"Generated: {tmpl_name}")
+            log(f"Generated Page: {tmpl_name}")
         except Exception as e:
-            log(f"Failed to render {tmpl_name}: {e}", "ERROR")
-            # We don't exit here, might be a partial success
+            log(f"Render Error [{tmpl_name}]: {e}", "ERROR")
             
-    log("=== GENERATION COMPLETE ===", "SUCCESS")
+    log("=== DASHBOARD UPDATE COMPLETED SUCCESSFULLY ===", "SUCCESS")
 
 if __name__ == "__main__":
     main()
