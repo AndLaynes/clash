@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Any, Optional, Tuple, Union
 
 from jinja2 import Environment, FileSystemLoader
@@ -151,9 +151,11 @@ def main():
     # 2. Process Data
     log("Processing Data & Logic...")
     
-    # Standard Date Format
-    now = datetime.now()
-    generated_at_str = now.strftime("%d/%m/%Y às %H:%M")
+    # Standard Date Format (Fixed to GMT-3)
+    # User requested specific timezone handling for public display
+    tz_brazil = timezone(timedelta(hours=-3))
+    now = datetime.now(tz_brazil)
+    generated_at_str = now.strftime("%d/%m/%Y às %H:%M (GMT-3)")
     audit_day_str = now.strftime("%d/%m")
     
     # League Calculation
